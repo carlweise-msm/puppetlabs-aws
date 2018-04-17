@@ -94,14 +94,23 @@ Puppet::Type.type(:ec2_volume).provide(:v2, parent: PuppetX::Puppetlabs::Aws) do
   end
 
   def find_snapshots
-    filters = [{
+    with_retries(:max_tries => @@RETRIES,
+                 :rescue => Aws::EC2::Errors::RequestLimitExceeded,
+                 :base_sleep_seconds => 30,
+                 :max_sleep_seconds => 60) do |attempt|
+      filters = snapshot_filters
+      ec2.describe_snapshots(filters: filters).snapshots
+    end
+  end
+
+  def snapshot_filters
+    [{
       name: 'description',
       values: [resource[:snapshot_label]]
     }, {
       name: 'status',
       values: ['completed']
     }]
-    ec2.describe_snapshots(filters: filters).snapshots
   end
 
   def ec2
