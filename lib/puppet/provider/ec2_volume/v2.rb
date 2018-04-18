@@ -99,8 +99,7 @@ Puppet::Type.type(:ec2_volume).provide(:v2, parent: PuppetX::Puppetlabs::Aws) do
                  :max_sleep_seconds => 60) do |attempt|
       Puppet.notice("Attempt #{attempt} to fetch snapshot "\
         "#{resource[:snapshot_label]}")
-      filters = snapshot_filters
-      ec2.describe_snapshots(filters: filters).snapshots
+      ec2.describe_snapshots(filters: snapshot_filters).snapshots
     end
   end
 
