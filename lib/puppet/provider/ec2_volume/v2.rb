@@ -85,22 +85,31 @@ Puppet::Type.type(:ec2_volume).provide(:v2, parent: PuppetX::Puppetlabs::Aws) do
   def latest_snapshot
     return resource[:snapshot_id] if resource[:snapshot_id]
     return false unless resource[:snapshot_label]
-    Puppet.notice("Attempting to fetch snapshot ID")
     latest = find_snapshots.first
-    Puppet.notice("Restoring volume from snapshot #{latest.snapshot_id}" \
+    Puppet.notice("Restoring volume from snapshot #{latest.snapshot_id} " \
       "taken #{latest.start_time}")
     latest.snapshot_id
   end
 
   def find_snapshots
-    filters = [{
+    with_retries(:max_tries => @@RETRIES,
+                 :rescue => Aws::EC2::Errors::RequestLimitExceeded,
+                 :base_sleep_seconds => 30,
+                 :max_sleep_seconds => 60) do |attempt|
+      Puppet.notice("Attempt #{attempt} to fetch snapshot "\
+        "#{resource[:snapshot_label]}")
+      ec2.describe_snapshots(filters: snapshot_filters).snapshots
+    end
+  end
+
+  def snapshot_filters
+    [{
       name: 'description',
       values: [resource[:snapshot_label]]
     }, {
       name: 'status',
       values: ['completed']
     }]
-    ec2.describe_snapshots(filters: filters).snapshots
   end
 
   def ec2
