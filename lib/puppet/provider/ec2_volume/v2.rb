@@ -85,7 +85,7 @@ Puppet::Type.type(:ec2_volume).provide(:v2, parent: PuppetX::Puppetlabs::Aws) do
   def latest_snapshot
     return resource[:snapshot_id] if resource[:snapshot_id]
     return false unless resource[:snapshot_label]
-    latest = find_snapshots.first
+    latest = find_snapshots.sort_by{|a,b| a > b}.reverse!
     Puppet.notice("Restoring volume from snapshot #{latest.snapshot_id} " \
       "taken #{latest.start_time}")
     latest.snapshot_id
