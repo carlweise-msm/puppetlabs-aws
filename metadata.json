@@ -1,6 +1,6 @@
 {
   "name": "puppetlabs-aws",
-  "version": "2.0.0g",
+  "version": "2.0.0f",
   "author": "puppetlabs",
   "summary": "This module provides the ability to manage AWS resources",
   "license": "Apache-2.0",
